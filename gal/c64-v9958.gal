@@ -1,0 +1,48 @@
+GAL16V8		; C64-v9958-Card
+C64V9958	; 64bit Signature max. 8 char. Text
+
+; v1.0 - Vossi, 07/2024 
+; CSR/CSW encoding, ROM CE decoding with jumper selection
+
+; $DF00 - $DF03 = write to v9958 (jumper selection of DExx/DFxx)
+; $DF04 - $DF07 = read from v9958
+; ROM CS only at read
+; optional Bank switching vie D0 at DE08/DF08
+
+; Pin definition
+;1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]   [9]   [10]
+ROMH  ROML  IO	  D0    RW    PHI2  ROMON ROM16 ROMUP GND
+
+;11]  [12]  [13]  [14]  [15]  [16]  [17]  [18]  [19]  [20]
+RESET EXROM GAME  A2    A3    CSW   CSR   ROM14 CEROM VCC
+
+; Equations
+/CSR	= /IO    *  PHI2  *  A2    * /A3    *  RW	; VDP read only with A2 = 1 at IO2 (DF00) + PHI2 high
+
+/CSW	= /IO    *  PHI2  * /A2    * /A3    * /RW	; VDP write only with A2 = 0 at IO2 (DF00) + PHI2 high
+
+/CEROM	=  ROMON * /ROML  *  RW			; enable rom at ROML & read
+	+  ROMON * /ROMH  *  ROM16 *  RW	; enable rom at ROMH & read
+
+/EXROM	=  ROMON				; select rom at $8000
+
+/GAME	=  ROMON *  ROM16			; select tom at $a000
+
+; choose here A14 set hard by jumper on cartridge or via bank switching
+
+; jumper selection of rom A14
+ROM14	=  ROMUP				; select upper rom half
+; bank switching A14
+;ROM14	=  RESET *  IO    *  ROM14				; switch via write to D0 at de08/df08
+;	+  RESET * /IO    * /A3    *  ROM14
+;	+  RESET * /IO    *  A3    *  RW     *  ROM14
+;	+  RESET * /IO    *  A3    * /RW     * /PHI2   *  ROM14
+;	+  RESET * /IO    *  A3    * /RW     *  PHI2   *  D0
+
+DESCRIPTION
+
+/    NOT or active-low
+*    AND
++    OR
+=    Combinational output
+:=   Registered output

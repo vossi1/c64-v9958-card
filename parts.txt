@@ -1,0 +1,34 @@
+Partlist
+revision 1.0
+
+Part       Value                Device         Package
+C1         100n                 C_CERAMIC_0805
+C2-C3      22p                  C_CERAMIC_0805
+C4-C7      100n                 C_CERAMIC_0805
+C8         100u/6.3V            C_CERAMIC_1206
+C9         22u                  C_CERAMIC_0805
+C10-C12    220u/6.3V            C_CERAMIC_1206 (alternative: tantal type B)
+C13        100u/6.3V            C_CERAMIC_1206
+C_RAM_ALT  100-470u/6.3V        ELKO_5MM       (alternative to C8)
+IC1        Yamaha V9958         V9958/V9938    SDIP64
+IC2        HYB514171            HYB514171      SOJ40-400
+IC3        GAL16V8              GAL16V8        PLCC20
+IC4        27/28/29C256         27C256         PLCC32
+IC5        HYB514171            HYB514171      SOJ40-400
+J2         RGBSG                PINHEAD5
+Q1         21,477MHz            CRYSTAL        HC18UV
+R-V9938    10k                  RESISTOR_0805
+R1         1k                   RESISTOR_0805  0805
+R2         220                  RESISTOR_0805  0805
+R3         22                   RESISTOR_0805  0805
+R4         1k                   RESISTOR_0805  0805
+R5         220                  RESISTOR_0805  0805
+R6         22                   RESISTOR_0805  0805
+R7         1k                   RESISTOR_0805  0805
+R8         220                  RESISTOR_0805  0805
+R9         22                   RESISTOR_0805  0805
+R10        4.7k                 RESISTOR_0805  0805
+R11        220                  RESISTOR_0805  0805
+R12        68                   RESISTOR_0805  0805
+R13-R15    10k                  RESISTOR_0805  0805
+T1-T4      BCW66H               BCW66H         SOT23

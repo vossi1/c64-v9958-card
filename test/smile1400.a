@@ -1,0 +1,174 @@
+; C64-V9958-Test Vossi 07/2024
+; load with ,8,1 and start with SYS 5120
+!cpu 6502
+*= $1400
+!to "test5120.prg", cbm
+	ldx #$00
+l0402:	lda $14c0,x
+	sta $df01
+	inx
+	cpx #$1a
+	bne l0402
+	lda #$00
+	sta $df01
+	lda #$40
+	sta $df01
+	lda #$00
+	ldy #$00
+	ldx #$00
+l041d:	sta $df00
+	nop
+	nop
+	nop
+	nop
+	nop
+	inx
+	bne l041d
+	iny
+	nop
+	nop
+	bne l041d
+	lda #$00
+	sta $df01
+	lda #$48
+	sta $df01
+	ldx #$00
+l0439:	lda $14e0,x
+	sta $df00
+	nop
+	nop
+	nop
+	nop
+	inx
+	cpx #$18
+	bne l0439
+	lda #$00
+	sta $df01
+	lda #$60
+	sta $df01
+	lda #$f8
+	sta $df00
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda #$00
+	sta $df01
+	lda #$54
+	sta $df01
+	ldy #$00
+l0469:	lda #$01
+	sta $df00
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda #$02
+	sta $df00
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	lda #$00
+	sta $df00
+	iny
+	bne l0469
+	lda #$c0
+	sta $df01
+	lda #$81
+	sta $df01
+	rts
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	brk
+	!byte $80
+	brk
+	sta ($08,x)
+	dey
+	!byte $02
+	!byte $89
+	ora ($84,x)
+	ora $82
+	brk
+	!byte $87
+	!byte $80
+	!byte $83
+	brk
+	txa
+	jsr $0085
+	!byte $8b
+	brk
+	stx $00
+	stx $0000
+	brk
+	brk
+	brk
+	brk
+	sec
+	!byte $7c
+	dec $fe,x
+	dec $7c
+	sec
+	brk
+	brk
+	stx $88
+	dey
+	dey
+	inc $00
+	brk
+	brk
+	inx
+	txa
+	inc $e2a2
+	brk
+	brk

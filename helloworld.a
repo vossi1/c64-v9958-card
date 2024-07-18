@@ -1,0 +1,325 @@
+; *************************************************************************************************
+;               C64-V9958-Card Yamaha V9938-V9958 C64-Hello World! / Vossi 07/2024
+; *************************************************************************************************
+!cpu 6502	; 6502, 6510, 65c02, 65816
+!ct scr		; standard text/char conversion table -> Screencode (pet = PETSCII, raw)
+; VDP write speed: Reg->Reg(Port 1,2,3) 2us, Reg->VRAM 5us, VRAM->VRAM 5us, VRAM->Reg 5us
+
+; switches
+PAL = 1			; PAL=1, NTSC=0		selects V9938/58 PAL RGB-output, NTSC has a higher picture
+!to "hello.prg", cbm
+LINES = 192		; lines = 192 / 212
+; ***************************************** CONSTANTS *********************************************
+FILL			= $00		; fills free memory areas with $00
+V_NULL			= $ff		; VDP string End
+VDPREG1			= $00		; VDP reg 1 value (mode bits M1+M2, screen disabled)
+VDPREG18		= $0d		; VDP reg 18 value (V/H screen adjust, $0d = Sony PVM 9")
+!if LINES=192 {VDPREG9	= $00|PAL*2	; VDP reg 9 value ($00 = NTSC, $02 = PAL)
+	}else {VDPREG9	= $80|PAL*2}
+COLS			= 32		; screen columns
+ROWS			= 24		; used lines
+; ***************************************** ADDRESSES *********************************************
+VDP			= $df00		; Port#0 RamWrite, #1 Control, #2 Palette, #4 RamRead, #5 Status
+!addr VDPRamWrite	= VDP
+!addr VDPControl	= VDP+1
+!addr VDPPalette	= VDP+2
+!addr VDPIndirect	= VDP+3
+!addr VDPRamRead	= VDP+4
+!addr VDPStatus		= VDP+5
+PatternTable		= $0000
+ColorTable		= $2000
+ScreenTable		= $1800
+; ****************************************** ZERO PAGE ********************************************
+!zone zeropage
+!addr counter		= $fb		; 8bit counter
+!addr temp		= $fc		; 8bit temp
+!addr pointer		= $fd		; pointer
+; ******************************************* MACROS **********************************************
+; macros
+!macro st16i .a, .v{		; *** store 16bit immidiate to address
+	lda # <.v
+	sta .a
+	lda # >.v
+	sta .a+1
+}
+!macro VdpSetReg .r{		; *** set VDP Register
+	sta VDPControl			; first writes data in A to control port #1
+	lda #.r | $80			; writes register no. with bit#7 = 1 to Port #1
+	sta VDPControl
+}
+!macro VdpWriteAddress{		; *** set VDP write vram address-pointer to AAXX
+	stx VDPControl
+	ora #$40			; bit#6 = 1 write
+	sta VDPControl
+} 
+; **************************************** BASIC LOADER *******************************************
+!initmem FILL
+*= $0801
+	!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$31,$00,$00,$00
+	; sys2061
+; ***************************************** ZONE MAIN *********************************************
+!zone main
+start:					; *** main code starts here ***	
+	jsr VDPInit
+	jsr VDPClear			; clear screen
+
+	+st16i pointer, vdp_message	; string address
+	ldy #0				; row in Y
+	ldx #0				; column in X
+	jsr VDPText
+
+	jsr VDPOn			; switch display on
+	rts
+; ************************************** ZONE SUBROUTINES *****************************************
+!zone subroutines
+; init vdp
+VDPInit:
+	lda #0
+	tax
+	+VdpSetReg 17			; write VDP regs fast indirect
+vinilp:	lda VdpInitData,x
+	sta VDPIndirect
+	inx
+	cpx #VdpInitDataEnd-VdpInitData
+	bne vinilp
+	
+	lda #VDPREG18
+	+VdpSetReg 18			; set register 18 V/H display adjust L 7-1,0,f-8 R
+; clear 16kB VRAM
+	ldy #$00
+	tya
+	tax
+	+VdpWriteAddress		; set VRAM write address to $AAXX = $0000, Bank Reg already 0
+	tya				; VRAM init value =$00
+	ldx #$40			; 16kB / 40 pages to clear
+viramlp:sta VDPRamWrite
+	iny
+	bne viramlp
+	dex
+	bne viramlp
+	; y already 0
+	tya				; a=0
+	+VdpSetReg 14			; set VRAM bank register to 0
+; copy palette
+	tya
+	+VdpSetReg  16			; set VDP register 16 = palette pointer to $00 
+	ldx #0
+-	lda PaletteData,x		; load palette-color to write
+	sta VDPPalette
+	inx
+	cpx #PaletteDataEnd - PaletteData
+	bne -
+; copy color-table
+	ldx #<ColorTable		; set VRAM write address to color-table
+	lda #>ColorTable
+	+VdpWriteAddress
+	+st16i pointer, ColorData	; pointer to color data
+	ldx #ColorDataEnd - ColorData	; size
+	; y already 0
+-	lda (pointer),y
+	sta VDPRamWrite
+	iny
+	dex
+	bne -
+; copy font
+	ldx #<PatternTable		; set VRAM write address to pattern-table
+	lda #>PatternTable
+	+VdpWriteAddress
+	+st16i pointer, FontData	; pointer to font data
+	ldx #>(FontDataEnd - FontData)	; size high
+	inx
+	stx counter
+	ldx #<(FontDataEnd - FontData)	; size low
+	ldy #0
+-	lda (pointer),y
+	sta VDPRamWrite
+	iny
+	bne +
+	inc pointer+1			; inc pointer high
++	dex
+	bne -
+	dec counter
+	bne -
+
+	rts
+; -------------------------------------------------------------------------------------------------
+; display on
+VDPOn:					; *** enable screen ***
+	lda #VDPREG1 | $40		; set mode reg 1 (M1+M2), bit#6 = 1 enables screen
+	+VdpSetReg 1
+	rts
+; -------------------------------------------------------------------------------------------------
+; clear screen
+VDPClear:
+	ldx #<ScreenTable
+	lda #>ScreenTable
+	+VdpWriteAddress		; set VRAM write address to screen table
+	lda #(>(27*COLS))+1		; 27 lines with 32 characters =$360 (+1 run for $60 in X)
+	sta counter
+	ldx #<(27*COLS)
+	lda #' '			; space
+-	sta VDPRamWrite
+	dex
+	bne -
+	dec counter
+	bne -
+	rts
+; -------------------------------------------------------------------------------------------------
+; print string from pointer to row y, column x
+VDPText:
+	stx temp			; safe column
+	ldx #<ScreenTable		; screen table base
+	lda #>ScreenTable
+-	cpy #$00
+	beq +
+	dey
+	clc
+	adc #COLS			; add line columns
+	bcc -
+	inx
+	bcs -
++	clc
+	adc temp			; add column
+	bcc +
+	inx
++	+VdpWriteAddress		; set VRAM address
+	ldy #0
+	sty counter			; init string counter
+-	lda(pointer),y			; load source data
+	cmp #V_NULL
+	beq +				; V_NULL = end of string
+	sta VDPRamWrite
+	iny				; next character from string
+	bne -				; always
++	rts
+; ****************************************** ZONE DATA ********************************************
+!zone data
+vdp_message !scr "Hello World!", V_NULL
+
+VdpInitData:	; graphics1-mode
+!byte $00,VDPREG1,$06,$80,$00,$36,$07,$00,$08,VDPREG9,$00,$00,$10,$f0,$00
+	; reg  0: $00 mode control 1: graphics mode 1 (bit#1-3 = M3 - M5)
+	; reg  1: $00 mode control 2: bit#1 16x16 sprites, bit#3-4 = M2-M1, #6 =1: display enable)
+	; reg  2: $06 name (screen) table base address $1800 (* $400)
+	; reg  3: $80 color table base address $2000 (* $40)
+	; reg  4: $00 pattern (character) generator table base address $0000 (* $800)
+	; reg  5: $36 sprite attribute table base address $1B00 (* $80)
+	; reg  6: $07 sprite pattern (data) generator base address = $3800 (* $800)
+	; reg  7: $00 text/overscan-backdrop color 
+	; reg  8: $08 bit#3 = 1: 64k VRAM chips, bit#1 = 0 sprites disable, bit#5 0=transparent
+	; reg  9: $00 bit#1 = NTSC/PAL, #2 = EVEN/ODD, #3 = interlace, #7 = 192/212 lines
+	; reg 10: $00 color table base address $0000 bit#0-2 = A14-A16
+	; reg 11: $00 sprite attribute table base address bit#0-1 = A15-A16
+	; reg 12: $10 text/background blink color
+	; reg 13: $f0 blink periods ON/OFF - f0 = blinking off
+	; reg 14: $00 VRAM write addresss bit#0-2 = A14-A16
+VdpInitDataEnd:
+
+; ***** Color Palette - 16 colors, 2 byte/color: RB, 0G each 3bit -> C64 VICII-colors *****
+PaletteData:
+	!byte $00,$00,$77,$07,$70,$01,$17,$06	;	0=black		1=white		2=red		3=cyan
+	!byte $56,$02,$32,$06,$06,$02,$72,$07	;	4=violet	5=green		6=blue		7=yellow
+	!byte $70,$03,$60,$02,$72,$03,$11,$01	;	8=orange	9=brown		a=lightred	b=darkgrey
+	!byte $33,$03,$54,$07,$27,$04,$55,$05	;	c=grey		d=litegreen	e=lightblue	f=lightgrey
+PaletteDataEnd:
+; ***** color data for tiles: each byte = color/background for a group of 8 tiles *****
+ColorData:
+	!byte $16,$16,$16,$16,$16,$16,$16,$16	; text = white, background = blue
+	!byte $16,$16,$16,$16,$16,$16,$16,$16
+	!byte $16,$16,$16,$16,$16,$16,$16,$16
+	!byte $16,$16,$16,$16,$16,$16,$16,$16
+ColorDataEnd:
+; ***** CBM 8x8 font - characters 0-90 only *****
+FontData:
+	!byte $1c, $22, $4a, $56, $4c, $20, $1e, $00
+	!byte $00, $00, $38, $04, $3c, $44, $3a, $00
+	!byte $40, $40, $5c, $62, $42, $62, $5c, $00
+	!byte $00, $00, $3c, $42, $40, $42, $3c, $00
+	!byte $02, $02, $3a, $46, $42, $46, $3a, $00
+	!byte $00, $00, $3c, $42, $7e, $40, $3c, $00
+	!byte $0c, $12, $10, $7c, $10, $10, $10, $00
+	!byte $00, $00, $3a, $46, $46, $3a, $02, $3c
+	!byte $40, $40, $5c, $62, $42, $42, $42, $00
+	!byte $08, $00, $18, $08, $08, $08, $1c, $00
+	!byte $04, $00, $0c, $04, $04, $04, $44, $38
+	!byte $40, $40, $44, $48, $50, $68, $44, $00
+	!byte $18, $08, $08, $08, $08, $08, $1c, $00
+	!byte $00, $00, $76, $49, $49, $49, $49, $00
+	!byte $00, $00, $5c, $62, $42, $42, $42, $00
+	!byte $00, $00, $3c, $42, $42, $42, $3c, $00
+	!byte $00, $00, $5c, $62, $62, $5c, $40, $40
+	!byte $00, $00, $3a, $46, $46, $3a, $02, $02
+	!byte $00, $00, $5c, $62, $40, $40, $40, $00
+	!byte $00, $00, $3e, $40, $3c, $02, $7c, $00
+	!byte $10, $10, $7c, $10, $10, $12, $0c, $00
+	!byte $00, $00, $42, $42, $42, $46, $3a, $00
+	!byte $00, $00, $42, $42, $42, $24, $18, $00
+	!byte $00, $00, $41, $49, $49, $49, $36, $00
+	!byte $00, $00, $42, $24, $18, $24, $42, $00
+	!byte $00, $00, $42, $42, $46, $3a, $02, $3c
+	!byte $00, $00, $7e, $04, $18, $20, $7e, $00
+	!byte $3c, $20, $20, $20, $20, $20, $3c, $00
+	!byte $1c, $22, $20, $f8, $20, $40, $fe, $00
+	!byte $3c, $04, $04, $04, $04, $04, $3c, $00
+	!byte $00, $08, $1c, $2a, $08, $08, $08, $00
+	!byte $00, $00, $10, $20, $7f, $20, $10, $00
+	!byte $00, $00, $00, $00, $00, $00, $00, $00
+	!byte $08, $08, $08, $08, $00, $00, $08, $00
+	!byte $24, $24, $24, $00, $00, $00, $00, $00
+	!byte $24, $24, $7e, $24, $7e, $24, $24, $00
+	!byte $08, $1e, $28, $1c, $0a, $3c, $08, $00
+	!byte $00, $62, $64, $08, $10, $26, $46, $00
+	!byte $30, $48, $48, $30, $4a, $44, $3a, $00
+	!byte $04, $08, $10, $00, $00, $00, $00, $00
+	!byte $04, $08, $10, $10, $10, $08, $04, $00
+	!byte $20, $10, $08, $08, $08, $10, $20, $00
+	!byte $08, $2a, $1c, $3e, $1c, $2a, $08, $00
+	!byte $00, $08, $08, $3e, $08, $08, $00, $00
+	!byte $00, $00, $00, $00, $08, $08, $10, $00
+	!byte $00, $00, $00, $7e, $00, $00, $00, $00
+	!byte $00, $00, $00, $00, $00, $18, $18, $00
+	!byte $00, $02, $04, $08, $10, $20, $40, $00
+	!byte $3c, $42, $46, $5a, $62, $42, $3c, $00
+	!byte $08, $18, $28, $08, $08, $08, $3e, $00
+	!byte $3c, $42, $02, $0c, $30, $40, $7e, $00
+	!byte $3c, $42, $02, $1c, $02, $42, $3c, $00
+	!byte $04, $0c, $14, $24, $7e, $04, $04, $00
+	!byte $7e, $40, $78, $04, $02, $44, $38, $00
+	!byte $1c, $20, $40, $7c, $42, $42, $3c, $00
+	!byte $7e, $42, $04, $08, $10, $10, $10, $00
+	!byte $3c, $42, $42, $3c, $42, $42, $3c, $00
+	!byte $3c, $42, $42, $3e, $02, $04, $38, $00
+	!byte $00, $00, $08, $00, $00, $08, $00, $00
+	!byte $00, $00, $08, $00, $08, $08, $10, $00
+	!byte $0e, $18, $30, $60, $30, $18, $0e, $00
+	!byte $00, $00, $7e, $00, $7e, $00, $00, $00
+	!byte $70, $18, $0c, $06, $0c, $18, $70, $00
+	!byte $3c, $42, $02, $0c, $10, $00, $10, $00
+	!byte $00, $00, $00, $00, $ff, $00, $00, $00
+	!byte $18, $24, $42, $7e, $42, $42, $42, $00
+	!byte $7c, $22, $22, $3c, $22, $22, $7c, $00
+	!byte $1c, $22, $40, $40, $40, $22, $1c, $00
+	!byte $78, $24, $22, $22, $22, $24, $78, $00
+	!byte $7e, $40, $40, $78, $40, $40, $7e, $00
+	!byte $7e, $40, $40, $78, $40, $40, $40, $00
+	!byte $1c, $22, $40, $4e, $42, $22, $1c, $00
+	!byte $42, $42, $42, $7e, $42, $42, $42, $00
+	!byte $1c, $08, $08, $08, $08, $08, $1c, $00
+	!byte $0e, $04, $04, $04, $04, $44, $38, $00
+	!byte $42, $44, $48, $70, $48, $44, $42, $00
+	!byte $40, $40, $40, $40, $40, $40, $7e, $00
+	!byte $42, $66, $5a, $5a, $42, $42, $42, $00
+	!byte $42, $62, $52, $4a, $46, $42, $42, $00
+	!byte $18, $24, $42, $42, $42, $24, $18, $00
+	!byte $7c, $42, $42, $7c, $40, $40, $40, $00
+	!byte $18, $24, $42, $42, $4a, $24, $1a, $00
+	!byte $7c, $42, $42, $7c, $48, $44, $42, $00
+	!byte $3c, $42, $40, $3c, $02, $42, $3c, $00
+	!byte $3e, $08, $08, $08, $08, $08, $08, $00
+	!byte $42, $42, $42, $42, $42, $42, $3c, $00
+	!byte $42, $42, $42, $24, $24, $18, $18, $00
+	!byte $42, $42, $42, $5a, $5a, $66, $42, $00
+	!byte $42, $42, $24, $18, $24, $42, $42, $00
+	!byte $22, $22, $22, $1c, $08, $08, $08, $00
+	!byte $7e, $02, $04, $18, $20, $40, $7e, $00
+FontDataEnd:
