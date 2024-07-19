@@ -7,7 +7,12 @@
 
 ; switches
 PAL = 1			; PAL=1, NTSC=0		selects V9938/58 PAL RGB-output, NTSC has a higher picture
+C128 = 0		; C128 version
+!if C128 = 1{
+!to "hello128.prg", cbm
+} else{
 !to "hello.prg", cbm
+}
 LINES = 192		; lines = 192 / 212
 ; ***************************************** CONSTANTS *********************************************
 FILL			= $00		; fills free memory areas with $00
@@ -54,9 +59,15 @@ ScreenTable		= $1800
 } 
 ; **************************************** BASIC LOADER *******************************************
 !initmem FILL
+!if C128 = 1{
+*= $1c01
+	!byte $0b,$1c,$0a,$00,$9e,$37,$31,$38,$31,$00,$00,$00
+	; sys7181
+} else{
 *= $0801
 	!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$31,$00,$00,$00
 	; sys2061
+}
 ; ***************************************** ZONE MAIN *********************************************
 !zone main
 start:					; *** main code starts here ***	
