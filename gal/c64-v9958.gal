@@ -23,10 +23,12 @@ RESET EXROM GAME  A2    A3    CSW   CSR   ROM14 CEROM VCC
 
 /CEROM	=  ROMON * /ROML  *  RW			; enable rom at ROML & read
 	+  ROMON * /ROMH  *  ROM16 *  RW	; enable rom at ROMH & read
-
-/EXROM	=  ROMON				; select rom at $8000
-
-/GAME	=  ROMON *  ROM16			; select tom at $a000
+; 2x c64-cart
+;/EXROM	=  ROMON				; select rom at $8000
+;/GAME	=  ROMON *  ROM16			; select tom at $a000
+; A14=1 -> C128 cart in upper rom half
+/EXROM	=  ROMON * /ROMUP			; select rom at $8000 only at A14=0
+/GAME	=  ROMON * /ROMUP   * ROM16		; select tom at $a000 only at A14=0
 
 ; choose here A14 set hard by jumper on cartridge or via bank switching
 

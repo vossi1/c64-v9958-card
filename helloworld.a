@@ -104,6 +104,7 @@ vinilp:	lda VdpInitData,x
 	tya				; VRAM init value =$00
 	ldx #$40			; 16kB / 40 pages to clear
 viramlp:sta VDPRamWrite
+!if C128 = 1{ nop }
 	iny
 	bne viramlp
 	dex
@@ -170,6 +171,7 @@ VDPClear:
 	ldx #<(27*COLS)
 	lda #' '			; space
 -	sta VDPRamWrite
+!if C128 = 1{ nop }
 	dex
 	bne -
 	dec counter

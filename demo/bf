@@ -1,0 +1,3 @@
+#!/bin/sh
+cat starwars.bin starwars128.bin > starwars_256.bin
+minipro -p at28c256@plcc32 -w starwars_256.bin

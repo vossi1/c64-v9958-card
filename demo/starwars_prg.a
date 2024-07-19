@@ -7,12 +7,7 @@
 
 ; switches
 PAL = 1		; selects V9938/58 PAL RGB-output, NTSC has a higher picture
-C128 = 1	; build c128 cartridge
-!if C128 = 1{
-!to "starwars128.bin", plain
-} else{
-!to "starwars.bin", plain
-}
+!to "starwars.prg", cbm
 ; constants
 FILL			= $ff		; fills free memory areas with $00
 VDPREG1			= $00		; VDP reg 1 value (mode bits M1+M2, screen disabled)
@@ -50,51 +45,14 @@ VDP			= $df00		; Port#0 RamWrite, #1 Control, #2 Palette, #4 RamRead, #5 Status
 	ora #$40			; bit#6 = 1 write
 	sta VDPControl
 } 
-; ****************************************** ZONE MAIN ********************************************
-!zone main
+; **************************************** BASIC LOADER *******************************************
 !initmem FILL
-*= $8000
-; autostart
-!if C128 = 1{
-	jmp cold			; coldstart
-	jmp warm			; warmstart
-	!byte 1				; identifier byte. 1 = start immediately
-	!byte $43,$42,$4d		; "cbm" C128 Autostart string
-cold:
-warm:
-	sei
-	ldx #$ff
-	txs 
-	cld 
-	lda #$e3
-	sta $01
-	lda #$37
-	sta $00
-	lda #%00001010			; BIT 0   : $D000-$DFFF (0 = I/O Block)
-					; BIT 1   : $4000-$7FFF (1 = RAM)
-					; BIT 2/3 : $8000-$BFFF (10 = External ROM)
-					; BIT 4/5 : $C000-$CFFF/$E000-$FFFF (00 = Kernal ROM)
-					; BIT 6/7 : RAM used. (00 = RAM 0)
-	sta $ff00			; MMU Configuration Register
-
-	jsr $ff8a			; Restore Vectors
-	jsr $ff84			; Init I/O Devices, Ports & Timers
-	jsr $ff81			; Init Editor & Video Chips
-} else{
-	!word cold			; coldstart vector
-	!word start			; warmstart vector
-	!byte $C3,$C2,$CD,$38,$30	; "CBM8O" Autostart string
- ; init system
-cold:
- 	sei
-	stx $d016
-	jsr $fda3			; prepare IRQ
-	jsr $fd50			; init memory
-	jsr $fd15			; init I/O
-	jsr $ff5b			; init vic
-start:
-}
-; code 
+*= $0801
+	!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$31,$00,$00,$00
+	; sys2061
+; ***************************************** ZONE MAIN *********************************************
+!zone main
+start:					; *** main code starts here ***	
 	ldx #0
 msglp:	lda message,x
 	jsr $ffd2			; char out
@@ -147,8 +105,7 @@ demo:	jsr VDPInit
 	bne --	
 
 show:	jsr VDPOn
-endless:jmp endless			; end program
-
+	rts
 ; ************************************** ZONE SUBROUTINES *****************************************
 !zone subroutines
 ; init vdp
@@ -156,7 +113,6 @@ VDPInit:
 	lda #0
 	tax
 	+VdpSetReg 17			; write VDP regs fast indirect
-!if C128 = 1{ nop }
 vinilp:	lda VdpInitData,x
 	sta VDPIndirect
 	inx
@@ -175,7 +131,6 @@ vinilp:	lda VdpInitData,x
 	tya				; VRAM init value =$00
 	; x, y already 0
 viramlp:sta VDPRamWrite
-!if C128 = 1{ nop }
 	inx
 	bne viramlp
 	iny
@@ -194,11 +149,7 @@ VDPOn:					; *** enable screen ***
 	rts
 ; ****************************************** ZONE DATA ********************************************
 !zone data
-!if C128 = 1{
-message:!pet $d, "v9958-cart c128-demo", $d, "(c) vossi 07/2024 baleares", 0
-} else{
 message:!pet $d, "v9958-cart c64-demo", $d, "(c) vossi 07/2024 baleares", 0
-}
 ; vdpdata
 VdpInitData:	; graphics7-mode
 	!byte $0e,$00,$1f,$80,$00,$f7,$1e,$00,$08,VDPREG9,$00,$01,$10,$0f,$00
@@ -221,5 +172,3 @@ VdpInitDataEnd:
 
 BitmapData:
 	!binary "starwars.rgb"
-*=$bfff
-	!byte $ff
