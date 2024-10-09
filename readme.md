@@ -51,6 +51,8 @@ C64 (C128) color-graphics-card with the Yamaha V9958 (V9938) VDP and 128kB dedic
 
     I soldered all the PLCC and SOJ sockets with solder paste and hot air.
     After soldering I checked if all pins are really fixed and no bridge exists!
+    With two solder jumper on the back you can select 27/29c256 or 28c256 eprom type.
+    For the DRAM you have also the option to use a THT cap instead SMD. 
 
 **RGB output:**
 
