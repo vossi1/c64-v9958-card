@@ -13,7 +13,7 @@ C64 (C128) color-graphics-card with the Yamaha V9958 (V9938) VDP and 128kB dedic
 
 **[Schematic](https://github.com/vossi1/c64-v9958-card/blob/master/doc/schematics.png)**
 
-**[Parts](https://github.com/vossi1/c64-v9958-card/blob/master/doc/partlist)**
+**[Parts](https://github.com/vossi1/c64-v9958-card/blob/master/doc/partlist.txt)**
 
 **description:**
 
@@ -30,7 +30,7 @@ C64 (C128) color-graphics-card with the Yamaha V9958 (V9938) VDP and 128kB dedic
     line, copy. Screen modes up to 5 need only 64kB vram, mode 6 and 7 need 128kB ram,
     because of faster bank interleave access.
 
-![V9958-card photo](https://github.com/vossi1/c64-v9958-card/blob/master/pictures/card_front.jpg)
+![V9958-card photo](https://github.com/vossi1/c64-v9958-card/blob/master/pictures/cart_front.jpg)
 
 **details:**
 
@@ -45,7 +45,7 @@ C64 (C128) color-graphics-card with the Yamaha V9958 (V9938) VDP and 128kB dedic
     With a modification in the GAL it's a also possible to use the cart as 2x16kB with bank
     switching via $DF08 (untested).
     
-![V9958-card back photo](https://github.com/vossi1/c64-v9958-card/blob/master/pictures/card_back.jpg)
+![V9958-card back photo](https://github.com/vossi1/c64-v9958-card/blob/master/pictures/cart_back.jpg)
 
 **assembling hints:**
 
