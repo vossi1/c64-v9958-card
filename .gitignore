@@ -1,6 +1,2 @@
 *.DS_Store
-*.d82
-*.d80
-/eagle/*
-/demo/galaxions.bin
-/demo/demo_galax.bin
+eagle/*
