@@ -1,0 +1,12 @@
+cbm2-v9958-card
+version 1.0
+
+scart-cable:
+------------
+
+cart	-	scart	signal
+1		-	15		red
+2		-	11		green
+3		-	7		blue
+4		-	20		csync
+5		-	5,9,13	ground
