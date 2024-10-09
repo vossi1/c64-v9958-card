@@ -53,6 +53,8 @@ C64 (C128) color-graphics-card with the Yamaha V9958 (V9938) VDP and 128kB dedic
     After soldering I checked if all pins are really fixed and no bridge exists!
     With two solder jumper on the back you can select 27/29c256 or 28c256 eprom type.
     For the DRAM you have also the option to use a THT cap instead SMD. 
+    If you want to use a V9938 you have to solder a 10k resistor and cut the two pre-connected
+    V9958-solder-bridges with a knife!
 
 **RGB output:**
 
