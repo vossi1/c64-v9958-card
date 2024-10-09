@@ -72,7 +72,7 @@ C64 (C128) color-graphics-card with the Yamaha V9958 (V9938) VDP and 128kB dedic
     My CBM2-card runs fine at 2MHz - so it's not a speed problem. I think the longer traces, or
     the C128 design is the reason. Maybe it helps to shield the cartridge ? 
 
-The pcb fits exactly in a Commodore-cartrdige-case:
+The pcb fits exactly in a Commodore-cartridge-case:
 ![V9958-card case](https://github.com/vossi1/c64-v9958-card/blob/master/pictures/cart_cable.jpg)
 
 **examples: helloworld.a - demo/starwars.a**
