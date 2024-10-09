@@ -1,0 +1,32 @@
+V9958 mode6 / mode7 with sprite mode 2 only!
+
+upper left of screen is 0, 0
+mode6: 16 colors from palette
+mode7: 8bit color %RRRGGGBB
+
+INIT			init graphics extension
+MODE g,c		g=0/1 on/off +2=PAL +4=Mode7, frame color
+COLOR c			select draw/text color
+CLEAR c			clear screen with backgroundcolor
+DOT x,y			set pixel x,y
+LINE x,y,x1,y1		line from x,y to x1,y1
+SET x,y			set cursor to x,y
+DRAW x1,y1		draw line to x1,y1
+FRAME x,y,x1,y1		frame x,y=lower left, x1,y1=upper right
+BLOCK x,y,dx,dy		block x,y=lower left, size dx,dy (min. 1)
+IMAGE x,y,adr,b		copy image (byte 0+1=dx,dy) from adr,bnk to x,y (only mode 6)
+TEST(x)			function test returns pixel color (set y with SET)
+CIRCLE x,y,r		circle at x,y with radius r
+SPRITE n,p,f		sprite n=0-31, pattern p=0-63, flags f= bit#5-7 
+SDATA p,cnt,adr,b	copy cnt=1-64 x 40 bytes to p=0-63 from adr, bank 
+SPOS n,x,y		move sprite n=0-31 to x, y pos. (0=upper left) 
+VPRINT x,y,""		print with userfont to x, y	 
+USERFONT adr,b		set userfont to adr=address, b=bank
+UPRINT ""		print with userfont to cursor pos 
+UPOS r,c		set uprint cursor to row, column
+SCOLOR n, c		mode6:	set palette color 0-15, color 0-15
+			mode7:	set uni color sprite n=0-31 with color c+flags 
+SCOPY x,y,dx,dy,x1,y1	copy screen data from x,y size dx,dy to x1,y1 
+
+Sprite Data Blocks are 40 bytes:
+32 byte pattern + 8 byte= 16 color nibbles for the 16 sprite lines.
