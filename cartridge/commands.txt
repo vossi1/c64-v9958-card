@@ -1,26 +1,26 @@
-V9958 mode7 with sprite mode 2 only!
+V9958 mode6/7 with sprite mode 2 only!
 
 upper left of screen is 0, 0
-8bit color %RRRGGGBB
+16 colors from palette / 8bit color %RRRGGGBB
 
 INIT			init graphics extension
-MODE g,c		g=0/1 on/off +2=PAL, c=backdrop color 8bit (frame)
-COLOR c			select draw/text color 8bit
-CLEAR c			clear screen with backgroundcolor 8bit
+MODE g,c		g=0/1 on/off +2=PAL +4=Mode7, +8 YJK (only mode 7), frame color
+COLOR c			select draw/text color
+CLEAR c			clear screen with backgroundcolor
 DOT x,y			set pixel x,y
 LINE x,y,x1,y1		line from x,y to x1,y1
 SET x,y			set cursor to x,y
 DRAW x1,y1		draw line to x1,y1
 FRAME x,y,x1,y1		frame x,y=lower left, x1,y1=upper right
 BLOCK x,y,dx,dy		block x,y=lower left, size dx,dy (min. 1)
-IMAGE x,y,adr,b		copy image (byte 0+1=dx,dy) from adr,bnk to x,y
+IMAGE x,y,adr		copy image (byte 0+1=dx,dy) from adr to x,y (only mode 6)
 TEST(x)			function test returns pixel color (set y with SET)
-CIRCLE x,y,r		circle at x,y with radius r
+CIRCLE x,y,r		circle at x,y with radius r (x doubled in mode 6)
 SPRITE n,p,f		sprite n=0-31, pattern p=0-63, flags f= bit#5-7 
-SDATA p,cnt,adr,b	copy cnt=1-64 x 40 bytes to p=0-63 from adr, bank 
+SDATA p,cnt,adr		copy cnt=1-64 x 40 bytes to p=0-63 from adr
 SPOS n,x,y		move sprite n=0-31 to x, y pos. (0=upper left) 
 VPRINT x,y,""		print with userfont to x, y	 
-USERFONT adr,b		set userfont to adr=address, b=bank
+USERFONT adr		set userfont to adr=address
 UPRINT ""		print with userfont to cursor pos 
 UPOS r,c		set uprint cursor to row, column
 SCOLOR n,r,g,b  mode6	set palette color n to red, green, blue (each 0-7)
