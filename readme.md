@@ -2,7 +2,7 @@
 
 **Copyright (c) 2024 Vossi - v 1.0**
 **Basic-Cartridge (c) 2024 Vossi**
-**www.mos6502.net**
+**www.mos6509.com**
 
 ## License
 This work is licensed under a Creative Commons Attribution-ShareAlike 4.0
